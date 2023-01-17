@@ -74,11 +74,8 @@ function createMarkers(response) {
 
 // Create a layer group that's made from the eqMarkers array, and pass it to the createMap function.
 createMap(L.layerGroup(eqMarkers));
-	
 } 
 
-  
 // Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers when it completes.
-d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(data => createMarkers(data));   
+d3.json(usgs_url).then(data => createMarkers(data));   
 
-// // d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(function () {})
