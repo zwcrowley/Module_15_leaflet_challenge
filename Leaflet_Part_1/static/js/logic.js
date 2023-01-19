@@ -5,11 +5,6 @@
 // Run an API call from: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson
 let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
-// A function to determine the marker size based on the population
-function markerSize(mag) {
-	return Math.sqrt(mag) * 50;
-  }
-  
 
 // createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the e1 markers= aliased as "earthQuakes":
 function createMap(earthQuakes) {
@@ -57,6 +52,26 @@ function createMarkers(response) {
 	// Pull the response.features property from response:
 	let eqs = response.features;
 	// console.log("All EQS", eqs);
+
+	// A function to determine the marker size based on the population
+	function markerSize(mag) {
+		return mag*15000;
+	}
+
+	// A function to determine the marker size based on the magnitude of the eq:
+	function markerSize(mag) {
+		return mag*15000;
+	}
+	// A function to determine the marker color based on the depth of the eq: !!!! Adjust colors::::::::::::::::
+	function getColor(d) {
+		return d > 90 ? 'Red' :
+			   d > 70  ? '#fd8d3c' :
+			   d > 50  ? '#feb24c' :
+			   d > 30  ? '#ffffb2' :
+			   d > 10   ? 'limegreen' :
+						  '#78c679';
+	}
+
   
 	// Initialize an array to hold the bike markers.
 	let eqMarkers = [];
@@ -78,9 +93,9 @@ function createMarkers(response) {
 		eqMarkers.push(
 			L.circle([eq.geometry.coordinates[1], eq.geometry.coordinates[0]], {
 			fillOpacity:1,
-			color:eq.properties.mag,
-			fillColor:eq.geometry.coordinates[2], // depth is the third coordinate in geometry
-			radius:eq.properties.mag  // Not working
+			color:"black",
+			fillColor:getColor(eq.geometry.coordinates[2]), // depth is the third coordinate in geometry
+			radius:markerSize(eq.properties.mag)
 			}).bindPopup(`<h1>${eq.properties.ids}</h1><hr><h3>Time: ${eq.properties.time}</h3><hr><h3>Location: ${eq.properties.place}</h3>`)
 			); 
 		
@@ -93,3 +108,4 @@ createMap(L.layerGroup(eqMarkers));
 // Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers when it completes.
 d3.json(usgs_url).then(data => createMarkers(data));   
 
+// NEED TO MAKE A LEGEND
