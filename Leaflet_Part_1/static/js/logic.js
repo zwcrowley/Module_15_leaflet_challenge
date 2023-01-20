@@ -9,7 +9,10 @@ let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_we
 // createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the e1 markers= aliased as "earthQuakes":
 function createMap(earthQuakes) {
 	// Save the the topo as a var: NOT WORKING!!!!
-	// let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', {maxZoom: 20, attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'});
+	let USGS_USTopo = USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', {
+		maxZoom: 20,
+		attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'
+	});
 
 	/// Set streetmap as osm:
 	let streetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -25,7 +28,7 @@ function createMap(earthQuakes) {
 	// Create a baseMaps object to hold the USGS_USTopo layer.
 	let baseMaps = {
 	"Street Map": streetmap,
-    "Topographic Map": topo
+    "Topographic Map": USGS_USTopo
 	};
 
 	// Create an overlayMaps object to hold the earthQuakes layer.
@@ -93,7 +96,7 @@ function createMarkers(response) {
 		eqMarkers.push(
 			L.circle([eq.geometry.coordinates[1], eq.geometry.coordinates[0]], {
 			fillOpacity:1,
-			color:"black",
+			color:"gray", 
 			fillColor:getColor(eq.geometry.coordinates[2]), // depth is the third coordinate in geometry
 			radius:markerSize(eq.properties.mag)
 			}).bindPopup(`<h1>${eq.properties.ids}</h1><hr><h3>Time: ${eq.properties.time}</h3><hr><h3>Location: ${eq.properties.place}</h3>`)
