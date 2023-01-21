@@ -53,6 +53,39 @@ function createMap(earthQuakes) {
 	L.control.layers(baseMaps, overlayMaps, {
 		collapsed: false
 	  }).addTo(myMap); 
+
+	// Create a legend, in the bottom right of the map and pass it to the map:
+	let legend = L.control({position: 'bottomright'}); 
+	
+	legend.onAdd = function (map) {
+	// Create a div for the legend in the html using js: '<strong>Depth (km)</strong>'
+	let div = L.DomUtil.create('div', 'info legend');
+	labels = ['<strong>Depth (km)</strong>'];
+	categories = ['0','10','30','50','70','90'];
+	colors = ['limegreen', '#ffff33', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026']
+
+	// Define the getColor function again so that legend can use it to pull out the colors:
+	function getColor(d) {
+		return d > 90 ? '#bd0026' :
+			   d > 70  ? '#f03b20' :
+			   d > 50  ? '#fd8d3c' :
+			   d > 30  ? '#fecc5c' :
+			   d > 10   ? '#ffff33' :
+						  'limegreen'; 
+	}
+	
+	// Loop through for each category in categories and set up the label and color in the legend:
+	for (var i = 0; i < categories.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + colors[i] + '"></i> ' +
+            categories[i] + (categories[i + 1] ? '&ndash;' + categories[i + 1] + '<br>' : '+'); 
+			console.log("cat",getColor(categories[i]))  
+    	}
+
+    return div;
+	};
+	// Add the legend to the map:
+	legend.addTo(myMap);
 }
   
 // Create a function to make the eq markers, pass in API call response data:
@@ -91,10 +124,10 @@ function createMarkers(response) {
 	// Initialize an array to hold the bike markers.
 	let eqMarkers = [];
   
-	// Loop through the eq array:                NOT WORKING!!!!!!!!!!!!!!
-	for (var i = 0; i < eqs.length; i++) {
+	// Loop through the eq array with a forEach:                
+	eqs.forEach(eq => {
 		// Pull out the index for the eq that is in the loop:
-		let eq = eqs[i];
+		// let eq = eqs[i];
 
 		// For each earthquake, create a marker, and bind a popup with the earthquake's ids, time, and location (place), then push to the eqMarkers array:
 		eqMarkers.push(
@@ -106,7 +139,7 @@ function createMarkers(response) {
 			}).bindPopup(`<h2>Magnitude: ${eq.properties.mag}</h2><h2>Depth: ${eq.geometry.coordinates[2]} km</h2></h2><hr><h2>Date: ${format_date(eq.properties.time)}</h2><h2>Time: ${format_time(eq.properties.time)}</h2><hr><h2>Location: ${eq.properties.place}</h2>`)
 			); 
 		
-		}
+		});
 
 // Create a layer group that's made from the eqMarkers array, and pass it to the createMap function.
 createMap(L.layerGroup(eqMarkers));
