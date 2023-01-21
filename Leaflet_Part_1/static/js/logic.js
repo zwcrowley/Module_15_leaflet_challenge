@@ -9,7 +9,7 @@ let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_we
 // createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the e1 markers= aliased as "earthQuakes":
 function createMap(earthQuakes) {
 	// Save the the topo as a var: NOT WORKING!!!!
-	let USGS_USTopo = USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', {
+	let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
 		maxZoom: 20,
 		attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'
 	});
@@ -17,6 +17,11 @@ function createMap(earthQuakes) {
 	/// Set streetmap as osm:
 	let streetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	});
+
+	let dark_tile = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+	maxZoom: 20,
+	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 	});
 
 	/// Set topo as OpenTopoMap:
@@ -28,7 +33,8 @@ function createMap(earthQuakes) {
 	// Create a baseMaps object to hold the USGS_USTopo layer.
 	let baseMaps = {
 	"Street Map": streetmap,
-    "Topographic Map": USGS_USTopo
+    "Topographic Map": USGS_USTopo, 
+	"Dark Map": dark_tile
 	};
 
 	// Create an overlayMaps object to hold the earthQuakes layer.
@@ -39,7 +45,7 @@ function createMap(earthQuakes) {
 	// Create the map object with options.
 	let myMap = L.map("map-id", { 
 	  center: [39.8283, -98.5795], 
-	  zoom: 5,
+	  zoom: 4,
 	  layers: [streetmap, earthQuakes] 
 	});
 	
@@ -56,24 +62,30 @@ function createMarkers(response) {
 	let eqs = response.features;
 	// console.log("All EQS", eqs);
 
-	// A function to determine the marker size based on the population
-	function markerSize(mag) {
-		return mag*15000;
-	}
-
 	// A function to determine the marker size based on the magnitude of the eq:
 	function markerSize(mag) {
-		return mag*15000;
+		return mag*30000;
 	}
 	// A function to determine the marker color based on the depth of the eq: !!!! Adjust colors::::::::::::::::
 	function getColor(d) {
-		return d > 90 ? 'Red' :
-			   d > 70  ? '#fd8d3c' :
-			   d > 50  ? '#feb24c' :
-			   d > 30  ? '#ffffb2' :
-			   d > 10   ? 'limegreen' :
-						  '#78c679';
+		return d > 90 ? '#bd0026' :
+			   d > 70  ? '#f03b20' :
+			   d > 50  ? '#fd8d3c' :
+			   d > 30  ? '#fecc5c' :
+			   d > 10   ? '#ffff33' :
+						  'limegreen'; 
 	}
+
+	// Function to format the time from UNIX ms to ISO:
+	// set options for time/date conversion;
+	// const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+	function format_time(t) {
+		return new Date(t).toLocaleTimeString('en-US'); 
+	  }
+	// Format date:
+	function format_date(d) { 
+		return new Date(d).toDateString('en-US');   
+	  }
 
   
 	// Initialize an array to hold the bike markers.
@@ -84,22 +96,14 @@ function createMarkers(response) {
 		// Pull out the index for the eq that is in the loop:
 		let eq = eqs[i];
 
-		// console.log("eq lat", eq.geometry.coordinates[2]);  
-		// console.log("eq long", eq.geometry.coordinates[1]);  
-		// console.log("eq mag", eq.properties.mag);  
-		// console.log("eq depth", eq.geometry.coordinates[2]);  
-		// console.log("eq ids", eq.properties.ids);  
-		// console.log("eq time", eq.properties.time);  
-		// console.log("eq location", eq.properties.place);  
-
 		// For each earthquake, create a marker, and bind a popup with the earthquake's ids, time, and location (place), then push to the eqMarkers array:
 		eqMarkers.push(
 			L.circle([eq.geometry.coordinates[1], eq.geometry.coordinates[0]], {
 			fillOpacity:1,
 			color:"gray", 
-			fillColor:getColor(eq.geometry.coordinates[2]), // depth is the third coordinate in geometry
+			fillColor:getColor(eq.geometry.coordinates[2]), // depth is the third coordinate in geometry   
 			radius:markerSize(eq.properties.mag)
-			}).bindPopup(`<h1>${eq.properties.ids}</h1><hr><h3>Time: ${eq.properties.time}</h3><hr><h3>Location: ${eq.properties.place}</h3>`)
+			}).bindPopup(`<h2>Magnitude: ${eq.properties.mag}</h2><h2>Depth: ${eq.geometry.coordinates[2]} km</h2></h2><hr><h2>Date: ${format_date(eq.properties.time)}</h2><h2>Time: ${format_time(eq.properties.time)}</h2><hr><h2>Location: ${eq.properties.place}</h2>`)
 			); 
 		
 		}
