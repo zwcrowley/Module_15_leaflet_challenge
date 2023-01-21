@@ -61,31 +61,23 @@ function createMap(earthQuakes) {
 	// Create a div for the legend in the html using js: '<strong>Depth (km)</strong>'
 	let div = L.DomUtil.create('div', 'info legend');
 	labels = ['<strong>Depth (km)</strong>'];
-	categories = ['0','10','30','50','70','90'];
+	categories = ['-10','10','30','50','70','90'];
+	// List of colors from getColors() in createMarkers() below:
 	colors = ['limegreen', '#ffff33', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026']
 
-	// Define the getColor function again so that legend can use it to pull out the colors:
-	function getColor(d) {
-		return d > 90 ? '#bd0026' :
-			   d > 70  ? '#f03b20' :
-			   d > 50  ? '#fd8d3c' :
-			   d > 30  ? '#fecc5c' :
-			   d > 10   ? '#ffff33' :
-						  'limegreen'; 
-	}
-	
-	// Loop through for each category in categories and set up the label and color in the legend:
-	for (var i = 0; i < categories.length; i++) {
-        div.innerHTML +=
-            '<i style="background:' + colors[i] + '"></i> ' +
-            categories[i] + (categories[i + 1] ? '&ndash;' + categories[i + 1] + '<br>' : '+'); 
-			console.log("cat",getColor(categories[i]))  
-    	}
 
+	// Loop through for each category in categories and set up the label and color in the legend for each break, this requires using the element index and array to get all the info in the right order in the legend:
+	categories.forEach((category, index, array) => { 
+        div.innerHTML +=
+		labels.push(
+            '<i style="background:' + colors[index] + '"></i> ' +
+            category + (array[index+1] ? '&ndash;' + array[index+1] : '+')); 
+    	})
+		div.innerHTML = labels.join('<br>');
     return div;
 	};
 	// Add the legend to the map:
-	legend.addTo(myMap);
+	legend.addTo(myMap); 
 }
   
 // Create a function to make the eq markers, pass in API call response data:
