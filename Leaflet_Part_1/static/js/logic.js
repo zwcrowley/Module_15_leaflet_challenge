@@ -2,7 +2,7 @@
 // By: Zack Crowley
 // Create a map of all the earthquakes in the past week in the US:
 
-// Run an API call from: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson
+// Set up the usgs url:
 let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
 

@@ -1,12 +1,12 @@
-// Leaflet challenge Part 1:
+// Leaflet challenge Part 2:
 // By: Zack Crowley
-// Create a map of all the earthquakes in the past week in the US:
+// Create a map of all the earthquakes in the past week in the US and add another layer of the tectonic plates:
 
-// Run an API call from: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson
+// Set up the usgs url:
 let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
 
-// createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the e1 markers= aliased as "earthQuakes":
+// createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the eq markers= aliased as "earthQuakes":
 function createMap(earthQuakes) {
 	// Save the USGS_USTopo as a var: 
 	let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
