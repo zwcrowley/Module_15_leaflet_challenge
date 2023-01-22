@@ -131,8 +131,8 @@ function createMarkers(response) {
 	let earthQuakes = L.layerGroup(eqMarkers)
 
 	// Set up the filepath for the tectonic plates geoJSON data:
-	let plates_geoJSON_path = "resources/plates.geojson"  
-	 
+	let plates_geoJSON_path = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json" 
+
 	// Set up the style of the lines for the tectonic plates:
 	var myStyle = {
 		"color": "#ff7800",
@@ -140,21 +140,23 @@ function createMarkers(response) {
 		"opacity": 0.65
 	};
 
-	// NOT WORKING!!!!!!!!!!!!!!!!
-	// Read in, style and set geoJSON tectonic plates data
-	let geoJSON_plates = L.geoJSON("plates.geojson", {
+	// Read in the data from the git repo for the tectonic plates:
+	d3.json(plates_geoJSON_path).then(function(plates_data){ 
+		console.log("original data", plates_data)
+ 
+	// Set up the lines for the tectonic plates, use the style and set geoJSON tectonic plates data:
+	let geoJSON_plates = L.geoJSON(plates_data, { 
 		style: myStyle
-	}); 
-
-	// Set the plates_geoJSON to a layer group and save as a var named "earthQuakes":
+		}); 
+	console.log("geojson object",geoJSON_plates) 
+	// Set the plates_geoJSON to a layer group and save as a var named "plates":
 	let plates = L.layerGroup(geoJSON_plates)
-	console.log(plates)
-
-
+	console.log("layer group", plates)
 
 // Create a layer group that's made from the eqMarkers array, and pass it to the createMap function (sends the layer setup to data to createMap() on line 10):
-createMap(earthQuakes, plates);
-} 
+	createMap(earthQuakes, plates);
+	 });
+}  // end of createMarkers() call
 
 // Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers() when it is finished (sends the data to createMarkers() on line 84):
 d3.json(usgs_url).then(data => createMarkers(data));   
