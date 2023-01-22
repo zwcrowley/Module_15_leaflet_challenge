@@ -7,7 +7,7 @@ let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_we
 
 
 // createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the eq markers= aliased as "earthQuakes":
-function createMap(earthQuakes) {
+function createMap(earthQuakes, plates) {
 	// Save the USGS_USTopo as a var: 
 	let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
 		maxZoom: 20,
@@ -34,14 +34,15 @@ function createMap(earthQuakes) {
 
 	// Create an overlayMaps object to hold the earthQuakes layer:
 	let overlayMaps = {
-		"Earthquakes": earthQuakes
+		"Earthquakes": earthQuakes,
+		"Tectonic": plates
 	};
   
 	// Create the map object with options.
 	let myMap = L.map("map-id", { 
 	  center: [39.8283, -98.5795], 
 	  zoom: 4,
-	  layers: [streetmap, earthQuakes] 
+	  layers: [streetmap, earthQuakes, plates]  
 	});
 	
 	// Create a layer control, and pass it  baseMaps and overlayMaps. Add the layer control to the map.
@@ -126,11 +127,33 @@ function createMarkers(response) {
 		
 		});
 	
-	// Set up the eqMarkers into a layer group and save as a var named "earthQuakes":
+	// Set the eqMarkers into a layer group and save as a var named "earthQuakes":
 	let earthQuakes = L.layerGroup(eqMarkers)
 
+	// Set up the filepath for the tectonic plates geoJSON data:
+	let plates_geoJSON_path = "resources/plates.geojson"  
+	 
+	// Set up the style of the lines for the tectonic plates:
+	var myStyle = {
+		"color": "#ff7800",
+		"weight": 5,
+		"opacity": 0.65
+	};
+
+	// NOT WORKING!!!!!!!!!!!!!!!!
+	// Read in, style and set geoJSON tectonic plates data
+	let geoJSON_plates = L.geoJSON("plates.geojson", {
+		style: myStyle
+	}); 
+
+	// Set the plates_geoJSON to a layer group and save as a var named "earthQuakes":
+	let plates = L.layerGroup(geoJSON_plates)
+	console.log(plates)
+
+
+
 // Create a layer group that's made from the eqMarkers array, and pass it to the createMap function (sends the layer setup to data to createMap() on line 10):
-createMap(earthQuakes);
+createMap(earthQuakes, plates);
 } 
 
 // Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers() when it is finished (sends the data to createMarkers() on line 84):
