@@ -8,6 +8,7 @@ let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_we
 
 // createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the eq markers= aliased as "earthQuakes":
 function createMap(earthQuakes, plates) {
+	console.log("plates in createMap",plates)
 	// Save the USGS_USTopo as a var: 
 	let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
 		maxZoom: 20,
@@ -35,53 +36,50 @@ function createMap(earthQuakes, plates) {
 	// Create an overlayMaps object to hold the earthQuakes layer:
 	let overlayMaps = {
 		"Earthquakes": earthQuakes,
-		"Tectonic": plates
+		"Tectonic": plates 
 	};
   
-	// Create the map object with options.
+	// Create the map object with options, set center to US center, set default layers:
 	let myMap = L.map("map-id", { 
 	  center: [39.8283, -98.5795], 
 	  zoom: 4,
 	  layers: [streetmap, earthQuakes, plates]  
 	});
 	
-	// Create a layer control, and pass it  baseMaps and overlayMaps. Add the layer control to the map.
+	// Create a layer control, and pass it  baseMaps and overlayMaps. Add the layer control to the map:
 	L.control.layers(baseMaps, overlayMaps, {
 		collapsed: false
 	  }).addTo(myMap); 
 
 	// Create a legend, in the bottom right of the map and pass it to the map:
 	let legend = L.control({position: 'bottomright'}); 
-	
+	// Function to create the legeond
 	legend.onAdd = function (map) {
-	// Create a div for the legend in the html using js: '<strong>Depth (km)</strong>'
-	let div = L.DomUtil.create('div', 'info legend');
-	labels = ['<strong>Depth (km)</strong>'];
-	categories = ['-10','10','30','50','70','90'];
-	// List of colors from getColors() in createMarkers() below:
-	colors = ['limegreen', '#ffff33', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026']
+		// Create a div for the legend in the html using js: '<strong>Depth (km)</strong>'
+		let div = L.DomUtil.create('div', 'info legend');
+		labels = ['<strong>Depth (km)</strong>'];
+		categories = ['-10','10','30','50','70','90'];
+		// List of colors from getColors() in createMarkers() below:
+		colors = ['limegreen', '#ffff33', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026']
 
-
-	// Loop through for each category in categories and set up the label and color in the legend for each break, this requires using the element index and array to get all the info in the right order in the legend:
-	categories.forEach((category, index, array) => { 
-        div.innerHTML +=
-		labels.push(
-            '<i style="background:' + colors[index] + '"></i> ' +
-            category + (array[index+1] ? '&ndash;' + array[index+1] : '+')); 
-    	})
-		div.innerHTML = labels.join('<br>');
-    return div;
+		// Loop through for each category in categories and set up the label and color in the legend for each break, this requires using the element index and array to get all the info in the right order in the legend:
+		categories.forEach((category, index, array) => { 
+        	div.innerHTML +=
+			labels.push(
+            	'<i style="background:' + colors[index] + '"></i> ' +
+            	category + (array[index+1] ? '&ndash;' + array[index+1] : '+')); 
+    		})
+			div.innerHTML = labels.join('<br>');
+    	return div;
 	};
 	// Add the legend to the map:
 	legend.addTo(myMap); 
 }
   
-// Create a function to make the eq markers, pass in API call response data:
+// Create a function to make the eq markers and the tectonic plate lines, pass in API call response data from USGS:
 function createMarkers(response) {
-  
 	// Pull the response.features property from response:
 	let eqs = response.features;
-	// console.log("All EQS", eqs);
 
 	// A function to determine the marker size based on the magnitude of the eq:
 	function markerSize(mag) {
@@ -106,16 +104,12 @@ function createMarkers(response) {
 		return new Date(d).toDateString('en-US');   
 	  }
 
-  
-	// Initialize an array to hold the bike markers.
+	// Initialize an array to hold the earthquake markers:
 	let eqMarkers = [];
   
 	// Loop through the eq array with a forEach:                
 	eqs.forEach(eq => {
-		// Pull out the index for the eq that is in the loop:
-		// let eq = eqs[i];
-
-		// For each earthquake, create a marker, and bind a popup with the earthquake's ids, time, and location (place), then push to the eqMarkers array:
+		// For each earthquake, create a marker, and bind a popup with the earthquake's mag, depth, time, and location (place), then push to the eqMarkers array:
 		eqMarkers.push(
 			L.circle([eq.geometry.coordinates[1], eq.geometry.coordinates[0]], {
 			fillOpacity:1,
@@ -135,29 +129,23 @@ function createMarkers(response) {
 
 	// Set up the style of the lines for the tectonic plates:
 	var myStyle = {
-		"color": "#ff7800",
-		"weight": 5,
-		"opacity": 0.65
+		"color": "#ff6a00",
+		"weight": 3 
 	};
 
 	// Read in the data from the git repo for the tectonic plates:
 	d3.json(plates_geoJSON_path).then(function(plates_data){ 
-		console.log("original data", plates_data)
  
 	// Set up the lines for the tectonic plates, use the style and set geoJSON tectonic plates data:
-	let geoJSON_plates = L.geoJSON(plates_data, { 
+	let plates = L.geoJSON(plates_data, { 
 		style: myStyle
-		}); 
-	console.log("geojson object",geoJSON_plates) 
-	// Set the plates_geoJSON to a layer group and save as a var named "plates":
-	let plates = L.layerGroup(geoJSON_plates)
-	console.log("layer group", plates)
+		}); 	
 
-// Create a layer group that's made from the eqMarkers array, and pass it to the createMap function (sends the layer setup to data to createMap() on line 10):
+// Call the createMaps(), send it the layer group that's made from the eqMarkers array and the tectonic plates layer (sends the two layer setup to data to createMap() on line 10):
 	createMap(earthQuakes, plates);
-	 });
+    });
 }  // end of createMarkers() call
 
-// Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers() when it is finished (sends the data to createMarkers() on line 84):
+// Perform an API call to the USGS API to get the earthquakes info for all earthquakes in the past week, then call createMarkers() when it is finished (sends the data to createMarkers() on line 84):
 d3.json(usgs_url).then(data => createMarkers(data));   
 
