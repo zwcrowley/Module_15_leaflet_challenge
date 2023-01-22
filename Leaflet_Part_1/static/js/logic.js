@@ -8,7 +8,7 @@ let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_we
 
 // createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the e1 markers= aliased as "earthQuakes":
 function createMap(earthQuakes) {
-	// Save the the topo as a var: NOT WORKING!!!!
+	// Save the USGS_USTopo as a var: 
 	let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
 		maxZoom: 20,
 		attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'
@@ -19,25 +19,20 @@ function createMap(earthQuakes) {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 	});
 
+	// Save the Dark tiles as a var:
 	let dark_tile = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
 	maxZoom: 20,
 	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 	});
-
-	/// Set topo as OpenTopoMap:
-	let topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-		attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-	  });
-	
   
-	// Create a baseMaps object to hold the USGS_USTopo layer.
+	// Create a baseMaps object to hold the different map tiles on the main layer:
 	let baseMaps = {
 	"Street Map": streetmap,
     "Topographic Map": USGS_USTopo, 
 	"Dark Map": dark_tile
 	};
 
-	// Create an overlayMaps object to hold the earthQuakes layer.
+	// Create an overlayMaps object to hold the earthQuakes layer:
 	let overlayMaps = {
 		"Earthquakes": earthQuakes
 	};
@@ -91,7 +86,7 @@ function createMarkers(response) {
 	function markerSize(mag) {
 		return mag*30000;
 	}
-	// A function to determine the marker color based on the depth of the eq: !!!! Adjust colors::::::::::::::::
+	// A function to determine the marker color based on the depth of the eq:
 	function getColor(d) {
 		return d > 90 ? '#bd0026' :
 			   d > 70  ? '#f03b20' :
@@ -102,12 +97,10 @@ function createMarkers(response) {
 	}
 
 	// Function to format the time from UNIX ms to ISO:
-	// set options for time/date conversion;
-	// const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 	function format_time(t) {
 		return new Date(t).toLocaleTimeString('en-US'); 
 	  }
-	// Format date:
+	// Function to Format date:
 	function format_date(d) { 
 		return new Date(d).toDateString('en-US');   
 	  }
@@ -132,12 +125,14 @@ function createMarkers(response) {
 			); 
 		
 		});
+	
+	// Set up the eqMarkers into a layer group and save as a var named "earthQuakes":
+	let earthQuakes = L.layerGroup(eqMarkers)
 
-// Create a layer group that's made from the eqMarkers array, and pass it to the createMap function.
-createMap(L.layerGroup(eqMarkers));
+// Create a layer group that's made from the eqMarkers array, and pass it to the createMap function (sends the layer setup to data to createMap() on line 10):
+createMap(earthQuakes);
 } 
 
-// Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers when it completes.
+// Perform an API call to the USGS API to get the earthquakes info for all eq in the past week, then call createMarkers() when it is finished (sends the data to createMarkers() on line 84):
 d3.json(usgs_url).then(data => createMarkers(data));   
 
-// NEED TO MAKE A LEGEND
