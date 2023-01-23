@@ -1,36 +1,39 @@
 // Leaflet challenge Part 2:
 // By: Zack Crowley
-// Create a map of all the earthquakes in the past week in the US and add another layer of the tectonic plates:
+// Create a map of all the earthquakes in the past week in the US and add another layer mapping the boundaries of the tectonic plates:
 
-// Set up the usgs url:
+// Set up the usgs url to use for the API call:
 let usgs_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
 
-// createMap takes the markers array made below and creates a basemap and overlay- overlay has the markers, gets passed the layer group with the eq markers= aliased as "earthQuakes":
+// createMap() takes the markers array made in createMarkers() below and creates a basemap and overlay- overlay has the markers and tectonic plates, gets passed to the layer group with the eq markers: aliased as "earthQuakes" and tectonic plates aliased "plates":
 function createMap(earthQuakes, plates) {
-	console.log("plates in createMap",plates)
+
 	// Save the USGS_USTopo as a var: 
-	let USGS_USTopo = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer/tile/{z}/{y}/{x}', {
-		maxZoom: 20,
+	let satellite = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
+		maxZoom: 8,
+		minZoom: 2,
 		attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'
 	});
 
-	/// Set streetmap as osm:
-	let streetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	/// Set outdoors as a var:
+	let outdoors = L.tileLayer('https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png', {
+		maxZoom: 8,
+		minZoom: 2,
+		attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 	});
 
 	// Save the Dark tiles as a var:
-	let dark_tile = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-	maxZoom: 20,
-	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+	let dark_tiles = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+		maxZoom: 20,
+		attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
 	});
-  
+
 	// Create a baseMaps object to hold the different map tiles on the main layer:
 	let baseMaps = {
-	"Street Map": streetmap,
-    "Topographic Map": USGS_USTopo, 
-	"Dark Map": dark_tile
+	"USGS Sat Map": satellite, 
+	"Outdoors Map": outdoors,
+	"Dark Map": dark_tiles 
 	};
 
 	// Create an overlayMaps object to hold the earthQuakes layer:
@@ -43,7 +46,7 @@ function createMap(earthQuakes, plates) {
 	let myMap = L.map("map-id", { 
 	  center: [39.8283, -98.5795], 
 	  zoom: 4,
-	  layers: [streetmap, earthQuakes, plates]  
+	  layers: [satellite, earthQuakes, plates]  
 	});
 	
 	// Create a layer control, and pass it  baseMaps and overlayMaps. Add the layer control to the map:
@@ -113,24 +116,26 @@ function createMarkers(response) {
 		eqMarkers.push(
 			L.circle([eq.geometry.coordinates[1], eq.geometry.coordinates[0]], {
 			fillOpacity:1,
-			color:"gray", 
+			color:"black", 
+			weight:1,
 			fillColor:getColor(eq.geometry.coordinates[2]), // depth is the third coordinate in geometry   
 			radius:markerSize(eq.properties.mag)
-			}).bindPopup(`<h2>Magnitude: ${eq.properties.mag}</h2><h2>Depth: ${eq.geometry.coordinates[2]} km</h2></h2><hr><h2>Date: ${format_date(eq.properties.time)}</h2><h2>Time: ${format_time(eq.properties.time)}</h2><hr><h2>Location: ${eq.properties.place}</h2>`)
+			}).bindPopup(`<h3>Magnitude: ${eq.properties.mag}</h3><h3>Depth: ${eq.geometry.coordinates[2]} km</h3></h3><hr><h3>Date: ${format_date(eq.properties.time)}</h3><h3>Time: ${format_time(eq.properties.time)}</h3><hr><h3>Location: ${eq.properties.place}</h3>`)
 			); 
 		
 		});
 	
 	// Set the eqMarkers into a layer group and save as a var named "earthQuakes":
 	let earthQuakes = L.layerGroup(eqMarkers)
-
-	// Set up the filepath for the tectonic plates geoJSON data:
+	
+	// Tectonic Plates layer set up:
+	// Set up the filepath for the tectonic plates geoJSON data in the github repo provided:
 	let plates_geoJSON_path = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json" 
 
 	// Set up the style of the lines for the tectonic plates:
 	var myStyle = {
 		"color": "#ff6a00",
-		"weight": 3 
+		"weight": 2 
 	};
 
 	// Read in the data from the git repo for the tectonic plates:
